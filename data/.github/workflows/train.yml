@@ -1,0 +1,40 @@
+name: Train Wine Quality Model
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Train model
+      run: python train.py
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: model-and-results
+        path: outputs/
+
+    - name: Job Summary
+      run: |
+        echo "## Lab 2 Results" >> $GITHUB_STEP_SUMMARY
+        echo "**Name:** Greeshma Sree" >> $GITHUB_STEP_SUMMARY
+        echo "**Roll No:** 2022BCS0127" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat outputs/results.json >> $GITHUB_STEP_SUMMARY
