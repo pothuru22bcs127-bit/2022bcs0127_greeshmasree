@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 
 # Load dataset
-data = pd.read_csv("winequality-red.csv", sep=';')
+data = pd.read_csv("data/winequality-red.csv", sep=';')
 
 X = data.drop("quality", axis=1)
 y = data["quality"]
