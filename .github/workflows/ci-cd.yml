@@ -27,7 +27,6 @@ jobs:
              echo "===== METRICS ====="
              cat metrics.json
 
-
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -75,6 +74,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Prepare Docker build context
+        run: cp artifacts/model.pkl .
+
       - name: Build and push Docker image
         run: |
           docker build \
@@ -85,6 +87,8 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/wine-api:${GITHUB_SHA}
 
       - name: Update BEST_F1_SCORE variable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-          gh variable set BEST_F1_SCORE "${{ env.current_metric }}"
+          echo "Updating BEST_F1_SCORE to ${{ env.current_metric }}"
+          gh variable set BEST_F1_SCORE ${{ env.current_metric }} --repo ${{ github.repository }}
