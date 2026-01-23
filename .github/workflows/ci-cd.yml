@@ -1,0 +1,62 @@
+name: CI/CD for ML Inference
+
+on:
+  push:
+    branches:
+      - main  # Run workflow on pushes to main
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train model
+        run: |
+          python train.py
+          cat metrics.json  # shows metrics
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-artifacts
+          path: |
+            model.pkl
+            metrics.json
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: train  # only runs if train succeeds
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: model-artifacts
+          path: ./artifacts
+
+      - name: Compare metrics
+        run: |
+          METRIC=$(jq .accuracy artifacts/metrics.json)
+          echo "Current model accuracy: $METRIC"
+          # Here you can add logic to compare with BEST_F1/MSE (optional)
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t ${DOCKER_USERNAME}/wine-api:latest .
+          docker push ${DOCKER_USERNAME}/wine-api:latest
