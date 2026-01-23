@@ -23,9 +23,10 @@ jobs:
 
       - name: Train model
         run: |
-          python train.py
-          echo "===== METRICS ====="
-          cat metrics.json
+             python scripts/train.py
+             echo "===== METRICS ====="
+             cat metrics.json
+
 
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
