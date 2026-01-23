@@ -54,7 +54,8 @@ jobs:
 
       - name: Compare metrics
         run: |
-          BEST=${{ vars.BEST_F1_SCORE || 0 }}
+          # Set best F1 score here manually or default to 0
+          BEST=0
           CURRENT=$(jq .accuracy artifacts/metrics.json)
 
           echo "Best metric   : $BEST"
@@ -85,10 +86,3 @@ jobs:
 
           docker push ${{ secrets.DOCKER_USERNAME }}/wine-api:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/wine-api:${GITHUB_SHA}
-
-      - name: Update BEST_F1_SCORE variable
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Updating BEST_F1_SCORE to ${{ env.current_metric }}"
-          gh variable set BEST_F1_SCORE ${{ env.current_metric }} --repo ${{ github.repository }}
