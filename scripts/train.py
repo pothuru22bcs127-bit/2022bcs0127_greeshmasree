@@ -40,7 +40,7 @@ print(f"R2 Score: {r2}")
 # Save outputs
 os.makedirs("outputs", exist_ok=True)
 
-joblib.dump(model, "outputs/model.pkl")
+joblib.dump(model, "model.pkl")
 
-with open("outputs/results.json", "w") as f:
+with open("results.json", "w") as f:
     json.dump({"mse": mse, "r2": r2}, f)
