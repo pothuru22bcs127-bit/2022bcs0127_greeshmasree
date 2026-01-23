@@ -42,5 +42,10 @@ os.makedirs("outputs", exist_ok=True)
 
 joblib.dump(model, "model.pkl")
 
-with open("results.json", "w") as f:
-    json.dump({"mse": mse, "r2": r2}, f)
+with open("metrics.json", "w") as f:
+    json.dump({
+        "mse": float(mse),
+        "r2": float(r2)
+    }, f)
+
+print("model.pkl and metrics.json saved successfully")
