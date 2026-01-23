@@ -3,7 +3,7 @@ name: CI/CD for ML Inference
 on:
   push:
     branches:
-      - main  # Trigger workflow on pushes to main
+      - main
 
 jobs:
   train:
@@ -11,12 +11,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: "3.11"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -24,10 +24,11 @@ jobs:
       - name: Train model
         run: |
           python train.py
-          cat metrics.json  # Optional: see metrics in workflow logs
+          echo "===== METRICS ====="
+          cat metrics.json
 
       - name: Upload model artifacts
-        uses: actions/upload-artifact@v3.2.2
+        uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
           path: |
@@ -40,28 +41,25 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install jq (for JSON parsing)
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install jq & bc
+        run: sudo apt-get update && sudo apt-get install -y jq bc
 
       - name: Download model artifacts
-        uses: actions/download-artifact@v3.2.2
+        uses: actions/download-artifact@v4
         with:
           name: model-artifacts
-          path: ./artifacts
+          path: artifacts
 
       - name: Compare metrics
-        id: compare_metrics
         run: |
-          # Get previous best metric from GitHub variable
-          BEST=${{ vars.BEST_F1_SCORE }}
-          # Get current model metric from metrics.json
+          BEST=${{ vars.BEST_F1_SCORE || 0 }}
           CURRENT=$(jq .accuracy artifacts/metrics.json)
-          echo "Best metric: $BEST"
+
+          echo "Best metric   : $BEST"
           echo "Current metric: $CURRENT"
 
-          # Compare metrics
           if (( $(echo "$CURRENT <= $BEST" | bc -l) )); then
             echo "Metric did not improve. Skipping deployment."
             exit 0
@@ -71,19 +69,21 @@ jobs:
           echo "current_metric=$CURRENT" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Build and push Docker image
         run: |
-          # Build image with latest tag and commit SHA tag
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/wine-api:latest -t ${{ secrets.DOCKER_USERNAME }}/wine-api:${GITHUB_SHA} .
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/wine-api:latest \
+            -t ${{ secrets.DOCKER_USERNAME }}/wine-api:${GITHUB_SHA} .
+
           docker push ${{ secrets.DOCKER_USERNAME }}/wine-api:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/wine-api:${GITHUB_SHA}
 
       - name: Update BEST_F1_SCORE variable
         run: |
-          gh auth login --with-token <<< ${{ secrets.GITHUB_TOKEN }}
-          gh variable set BEST_F1_SCORE ${{ env.current_metric }}
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+          gh variable set BEST_F1_SCORE "${{ env.current_metric }}"
