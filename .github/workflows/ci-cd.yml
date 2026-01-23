@@ -27,7 +27,7 @@ jobs:
           cat metrics.json  # Optional: see metrics in workflow logs
 
       - name: Upload model artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.2.2
         with:
           name: model-artifacts
           path: |
@@ -46,7 +46,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Download model artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.2.2
         with:
           name: model-artifacts
           path: ./artifacts
