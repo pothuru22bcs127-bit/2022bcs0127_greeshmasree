@@ -1,4 +1,4 @@
-# Dockerfile
+
 
 FROM python:3.11-slim
 
@@ -14,3 +14,4 @@ RUN pip install --no-cache-dir -r requirement.txt
 
 # Default command to run training
 CMD ["python3", "train.py"]
+
