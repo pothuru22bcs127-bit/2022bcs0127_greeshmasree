@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy scripts, requirements, and data
 COPY scripts/train.py .
 COPY requirement.txt .
-COPY data/ data/   # <-- Add this line to include your CSV file
+COPY data/ data/   # <-- Copy the entire data folder
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirement.txt
