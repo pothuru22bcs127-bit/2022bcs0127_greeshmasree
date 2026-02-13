@@ -1,18 +1,24 @@
+# Use slim Python 3.11 base image
 FROM python:3.11-slim
 
+# Set working directory
 WORKDIR /app
 
-# Copy scripts and requirements
+# Copy training script and requirements
 COPY scripts/train.py .
 COPY requirement.txt .
 
-# Optional: download data at build time (replace URL with your CSV location)
-# This avoids committing large CSV files to GitHub
+# Install curl to download CSV
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create data folder and download CSV
 RUN mkdir -p data && \
     curl -o data/my_data.csv https://your-storage-link.com/my_data.csv
 
-# Install dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirement.txt
 
-# Default command
+# Default command to run training
 CMD ["python3", "train.py"]
