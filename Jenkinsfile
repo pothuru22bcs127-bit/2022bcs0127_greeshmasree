@@ -14,7 +14,7 @@ pipeline {
                 sh '''
                 echo "Name: GREESHMASREE"
                 echo "Roll No: 2022BCS0127"
-                python3 train.py
+                docker run --rm 2022bcs0127greeshmasree/ml-model python3 train.py
                 '''
             }
         }
