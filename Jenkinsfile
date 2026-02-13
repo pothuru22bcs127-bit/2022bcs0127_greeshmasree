@@ -1,23 +1,26 @@
 pipeline {
     agent any
-    environment {
-        PYTHON = "python" // adjust if using virtual env
-    }
+
     stages {
         stage('Checkout') {
             steps {
+                // Checkout your GitHub repo
                 git url: 'https://github.com/pothuru22bcs127-bit/2022bcs0127_greeshmasree.git', branch: 'main'
             }
         }
-        stage('Train Model') {
+
+        stage('Info') {
             steps {
-                sh "${env.PYTHON} train.py"
+                echo 'Lab 5: Automated Model Deployment Using Jenkins'
+                echo 'Name: GREESHMASREE, Roll No: 2022BCS0127'
             }
         }
-        stage('Evaluate Model') {
+
+        stage('Manual Training Reminder') {
             steps {
-                sh "${env.PYTHON} evaluate.py"
-                sh "echo 'Name: GREESHMASREE, Roll No: 2022BCS0127'"
+                echo '⚠ Python training will be run manually on host:'
+                echo 'cd <your-repo-folder> && python train.py && python evaluate.py'
+                echo 'Metrics will be printed along with your name and roll number'
             }
         }
     }
