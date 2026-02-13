@@ -1,28 +1,23 @@
 pipeline {
     agent any
-
+    environment {
+        PYTHON = "python" // adjust if using virtual env
+    }
     stages {
-
-        stage('Build Docker Image') {
+        stage('Checkout') {
             steps {
-                echo "Building Docker image..."
-                sh 'docker build -t 2022bcs0127greeshmasree/ml-model .'
+                git url: 'https://github.com/pothuru22bcs127-bit/2022bcs0127_greeshmasree.git', branch: 'main'
             }
         }
-
-        stage('Run Model Training') {
+        stage('Train Model') {
             steps {
-                echo "Running model training inside Docker..."
-                // No need to mount data or download CSV; it's already in the image
-                sh 'docker run --rm 2022bcs0127greeshmasree/ml-model'
+                sh "${env.PYTHON} train.py"
             }
         }
-
-        stage('Push to DockerHub') {
+        stage('Evaluate Model') {
             steps {
-                echo "Pushing Docker image to DockerHub..."
-                // Make sure you're logged in on Jenkins node
-                sh 'docker push 2022bcs0127greeshmasree/ml-model'
+                sh "${env.PYTHON} evaluate.py"
+                sh "echo 'Name: GREESHMASREE, Roll No: 2022BCS0127'"
             }
         }
     }
