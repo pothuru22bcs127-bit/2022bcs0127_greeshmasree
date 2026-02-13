@@ -1,16 +1,16 @@
-FROM python:3.11-slim
+# Start from official Jenkins LTS image
+FROM jenkins/jenkins:lts
 
-WORKDIR /app
+# Switch to root to install Python
+USER root
 
-# Copy training script and requirements
-COPY scripts/train.py .
-COPY requirement.txt .
+# Install Python3 and pip
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    apt-get clean
 
-# Copy only the CSV file
-COPY data/winequality-red.csv data/winequality-red.csv
+# Make python3 accessible as python
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirement.txt
-
-# Default command to run training
-CMD ["python3", "train.py"]
+# Switch back to Jenkins user
+USER jenkins
