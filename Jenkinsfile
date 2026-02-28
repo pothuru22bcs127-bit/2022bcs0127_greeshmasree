@@ -1,26 +1,71 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "yourdockerhubusername/yourimagename"
+        CONTAINER_NAME = "ml-test-container"
+    }
+
     stages {
-        stage('Checkout') {
+
+        stage('Pull Image') {
             steps {
-                // Checkout your GitHub repo
-                git url: 'https://github.com/pothuru22bcs127-bit/2022bcs0127_greeshmasree.git', branch: 'main'
+                sh 'docker pull $IMAGE_NAME'
             }
         }
 
-        stage('Info') {
+        stage('Run Container') {
             steps {
-                echo 'Lab 5: Automated Model Deployment Using Jenkins'
-                echo 'Name: GREESHMASREE, Roll No: 2022BCS0127'
+                sh 'docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME'
             }
         }
 
-        stage('Manual Training Reminder') {
+        stage('Wait for Service') {
             steps {
-                echo '⚠ Python training will be run manually on host:'
-                echo 'cd <your-repo-folder> && python train.py && python evaluate.py'
-                echo 'Metrics will be printed along with your name and roll number'
+                script {
+                    sleep 10
+                }
+            }
+        }
+
+        stage('Valid Inference Test') {
+            steps {
+                script {
+                    def response = sh(
+                        script: "curl -s -X POST http://localhost:8000/predict -H 'Content-Type: application/json' -d @valid_input.json",
+                        returnStdout: true
+                    )
+
+                    echo "Valid Response: ${response}"
+
+                    if (!response.contains("prediction")) {
+                        error("Prediction field missing!")
+                    }
+                }
+            }
+        }
+
+        stage('Invalid Inference Test') {
+            steps {
+                script {
+                    def response = sh(
+                        script: "curl -s -X POST http://localhost:8000/predict -H 'Content-Type: application/json' -d @invalid_input.json",
+                        returnStdout: true
+                    )
+
+                    echo "Invalid Response: ${response}"
+
+                    if (!response.contains("error")) {
+                        error("Invalid input did not produce error!")
+                    }
+                }
+            }
+        }
+
+        stage('Stop Container') {
+            steps {
+                sh 'docker stop $CONTAINER_NAME || true'
+                sh 'docker rm $CONTAINER_NAME || true'
             }
         }
     }
