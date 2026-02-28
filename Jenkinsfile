@@ -16,31 +16,29 @@ pipeline {
 
         stage('Pull Image') {
             steps {
-                sh 'docker pull $IMAGE_NAME'
+                bat "docker pull ${IMAGE_NAME}"
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 8000:8000 --name $CONTAINER_NAME $IMAGE_NAME'
+                bat "docker run -d -p 8000:8000 --name ${CONTAINER_NAME} ${IMAGE_NAME} || true"
             }
         }
 
         stage('Wait for Service') {
             steps {
-                script {
-                    sleep 15
-                }
+                sleep 15
             }
         }
 
         stage('Valid Inference Test') {
             steps {
                 script {
-                    def response = sh(
-                        script: "curl -s -X POST http://host.docker.internal:8000/predict -H 'Content-Type: application/json' -d @valid_input.json",
+                    def response = bat(
+                        script: "curl -s -X POST http://localhost:8000/predict -H \"Content-Type: application/json\" -d @valid_input.json",
                         returnStdout: true
-                    )
+                    ).trim()
 
                     echo "Valid Response: ${response}"
 
@@ -54,10 +52,10 @@ pipeline {
         stage('Invalid Inference Test') {
             steps {
                 script {
-                    def response = sh(
-                        script: "curl -s -X POST http://host.docker.internal:8000/predict -H 'Content-Type: application/json' -d @invalid_input.json",
+                    def response = bat(
+                        script: "curl -s -X POST http://localhost:8000/predict -H \"Content-Type: application/json\" -d @invalid_input.json",
                         returnStdout: true
-                    )
+                    ).trim()
 
                     echo "Invalid Response: ${response}"
 
@@ -70,9 +68,12 @@ pipeline {
 
         stage('Stop Container') {
             steps {
-                sh 'docker stop $CONTAINER_NAME || true'
-                sh 'docker rm $CONTAINER_NAME || true'
+                bat "docker stop ${CONTAINER_NAME} || true"
+                bat "docker rm ${CONTAINER_NAME} || true"
             }
         }
     }
 }
+
+        
+            
