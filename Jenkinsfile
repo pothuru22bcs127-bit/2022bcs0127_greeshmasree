@@ -2,11 +2,17 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "yourdockerhubusername/yourimagename"
-        CONTAINER_NAME = "ml-test-container"
+        IMAGE_NAME = "2022bcs0127greeshmasree/jenkins-python"
+        CONTAINER_NAME = "ml-inference-test"
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/pothuru22bcs127-bit/2022bcs0127_greeshmasree.git', branch: 'main'
+            }
+        }
 
         stage('Pull Image') {
             steps {
@@ -23,7 +29,7 @@ pipeline {
         stage('Wait for Service') {
             steps {
                 script {
-                    sleep 10
+                    sleep 15
                 }
             }
         }
@@ -32,7 +38,7 @@ pipeline {
             steps {
                 script {
                     def response = sh(
-                        script: "curl -s -X POST http://localhost:8000/predict -H 'Content-Type: application/json' -d @valid_input.json",
+                        script: "curl -s -X POST http://host.docker.internal:8000/predict -H 'Content-Type: application/json' -d @valid_input.json",
                         returnStdout: true
                     )
 
@@ -49,14 +55,14 @@ pipeline {
             steps {
                 script {
                     def response = sh(
-                        script: "curl -s -X POST http://localhost:8000/predict -H 'Content-Type: application/json' -d @invalid_input.json",
+                        script: "curl -s -X POST http://host.docker.internal:8000/predict -H 'Content-Type: application/json' -d @invalid_input.json",
                         returnStdout: true
                     )
 
                     echo "Invalid Response: ${response}"
 
                     if (!response.contains("error")) {
-                        error("Invalid input did not produce error!")
+                        error("Invalid input did not return error!")
                     }
                 }
             }
